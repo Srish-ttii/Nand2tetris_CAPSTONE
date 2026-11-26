@@ -1,0 +1,11 @@
+Labels:
+CHECK_KEY = 0
+CLEAR_BOX = 4
+FILL_BOX = 8
+SETUP = 10
+NEXT_ROW = 20
+
+Variables:
+fill_val = 16
+screen_ptr = 17
+row_left = 18

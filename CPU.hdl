@@ -1,0 +1,59 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/05/CPU.hdl
+
+/**
+ * The Hack CPU (Central Processing unit), consisting of an ALU,
+ * two registers named A and D, and a program counter named PC.
+ */
+
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+    Not(in=instruction[15], out=instA);
+    And(a=instruction[15], b=instruction[5], out=cLoadA);
+    Mux16(a=instruction, b=aluResult, sel=cLoadA, out=muxAOut);
+
+    Or(a=instA, b=cLoadA, out=loadAReg);
+    ARegister(in=muxAOut, load=loadAReg, out=regAOut, out[0..14]=addressM);
+
+    And(a=instruction[15], b=instruction[12], out=selMIn);
+    Mux16(a=regAOut, b=inM, sel=selMIn, out=aluY);
+
+    And(a=instruction[15], b=instruction[4], out=loadDReg);
+    DRegister(in=aluResult, load=loadDReg, out=regDOut);
+
+    ALU(x=regDOut, y=aluY,
+        zx=instruction[11], nx=instruction[10],
+        zy=instruction[9],  ny=instruction[8],
+        f=instruction[7],   no=instruction[6],
+        out=aluResult, out=outM, zr=zeroFlag, ng=negFlag);
+
+    And(a=instruction[15], b=instruction[3], out=writeM);
+
+    Or(a=zeroFlag, b=negFlag, out=zeroOrNeg);
+    Not(in=zeroOrNeg, out=posFlag);
+
+    And(a=instruction[2], b=negFlag, out=jltBit);
+    And(a=instruction[1], b=zeroFlag, out=jeqBit);
+    And(a=instruction[0], b=posFlag, out=jgtBit);
+
+    Or(a=jltBit, b=jeqBit, out=jleBit);
+    Or(a=jleBit, b=jgtBit, out=jumpFlag);
+    And(a=instruction[15], b=jumpFlag, out=pcLoadBit);
+    Not(in=pcLoadBit, out=pcIncBit);
+
+    PC(in=regAOut, load=pcLoadBit, inc=pcIncBit, reset=reset, out[0..14]=pc);
+}
