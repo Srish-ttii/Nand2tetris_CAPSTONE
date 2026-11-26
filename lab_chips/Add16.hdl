@@ -1,5 +1,5 @@
 // This file is part of www.nand2tetris.org
-// Author: Prachi Manwal (Roll No: 2501730365, K = 65)
+// Author: Srishti Soni (Roll No: 2501730380, K = 65)
 
 CHIP Add16 {
     IN a[16], b[16];
